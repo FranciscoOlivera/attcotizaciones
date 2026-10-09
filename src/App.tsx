@@ -156,7 +156,7 @@ export default function App() {
     }
   });
 
-  // Master Email State & Change Modal (Protected by PIN 2429)
+  // Master Email State & Change Modal (Protected by Admin PIN)
   const [masterEmail, setMasterEmail] = useState<string>(() => {
     try {
       return localStorage.getItem('att_master_email') || 'UserTotix98@gmail.com';
@@ -1555,7 +1555,7 @@ export default function App() {
         </div>
       </footer>
 
-      {/* Change Master Mailbox Modal (Protected by PIN 2429) */}
+      {/* Change Master Mailbox Modal (Protected by Admin PIN) */}
       <ChangeMasterMailboxModal
         isOpen={isChangeMailboxOpen}
         onClose={() => setIsChangeMailboxOpen(false)}

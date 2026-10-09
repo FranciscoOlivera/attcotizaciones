@@ -184,7 +184,70 @@ function drawThemeAtmosphere(
 ): void {
   ctx.save();
 
-  if (themeId === 'fiestas-patrias') {
+  if (themeId === 'halloween') {
+    // 🎃 HALLOWEEN / OCTUBRE: Glowing orange spooky orbs, purple bats, jack-o-lantern sparks
+    const halloweenColors = ['#f97316', '#a855f7', '#fb923c', '#c084fc', '#ea580c', '#ffffff'];
+    for (let i = 0; i < 50; i++) {
+      const sx = (i * 79 + 37) % (width - 80) + 40;
+      const sy = (i * 101 + 29) % (height - 120) + 60;
+      const size = 3 + (i % 5);
+      ctx.fillStyle = halloweenColors[i % halloweenColors.length];
+      ctx.globalAlpha = 0.55;
+      if (i % 4 === 0) {
+        // Little glowing ghost/bat silhouettes
+        ctx.beginPath();
+        ctx.arc(sx, sy, size, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.rotate((i * 45 * Math.PI) / 180);
+        ctx.fillRect(-size, -size / 2, size * 2.4, size);
+        ctx.restore();
+      }
+    }
+  } else if (themeId === 'dia-de-muertos') {
+    // 💀 DÍA DE MUERTOS / NOVIEMBRE: Cempasúchil bright orange & marigold yellow petals, deep magenta
+    const cempasuchilColors = ['#f97316', '#fbbf24', '#f59e0b', '#ec4899', '#f43f5e', '#ffffff'];
+    for (let i = 0; i < 48; i++) {
+      const sx = (i * 71 + 43) % (width - 80) + 40;
+      const sy = (i * 97 + 31) % (height - 120) + 60;
+      const size = 3.5 + (i % 4);
+      ctx.fillStyle = cempasuchilColors[i % cempasuchilColors.length];
+      ctx.globalAlpha = 0.6;
+      ctx.beginPath();
+      ctx.arc(sx, sy, size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else if (themeId === 'otono') {
+    // 🍂 OTOÑO / OCTUBRE: Falling warm amber leaves and golden embers
+    const otonoColors = ['#f59e0b', '#d97706', '#b45309', '#ea580c', '#fbbf24', '#ffffff'];
+    for (let i = 0; i < 46; i++) {
+      const sx = (i * 73 + 41) % (width - 80) + 40;
+      const sy = (i * 97 + 33) % (height - 120) + 60;
+      const size = 3 + (i % 4);
+      ctx.fillStyle = otonoColors[i % otonoColors.length];
+      ctx.globalAlpha = 0.55;
+      ctx.save();
+      ctx.translate(sx, sy);
+      ctx.rotate((i * 40 * Math.PI) / 180);
+      ctx.fillRect(-size, -size / 2, size * 2.2, size * 1.2);
+      ctx.restore();
+    }
+  } else if (themeId === 'cyber-octubre') {
+    // ⚡ CYBER OCTUBRE: Electric cyan and neon violet pulses
+    const cyberColors = ['#00e5ff', '#a855f7', '#38bdf8', '#c084fc', '#ffffff'];
+    for (let i = 0; i < 48; i++) {
+      const sx = (i * 67 + 53) % (width - 80) + 40;
+      const sy = (i * 89 + 37) % (height - 120) + 60;
+      const size = 2.5 + (i % 4);
+      ctx.fillStyle = cyberColors[i % cyberColors.length];
+      ctx.globalAlpha = 0.6;
+      ctx.beginPath();
+      ctx.arc(sx, sy, size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else if (themeId === 'fiestas-patrias') {
     // 🇲🇽 MEXICAN FIESTAS PATRIAS: Tricolor celebratory confetti, gold ribbons, stars
     const colors = ['#10b981', '#ffffff', '#ef4444', '#fbbf24', '#059669', '#dc2626'];
     for (let i = 0; i < 48; i++) {
@@ -205,8 +268,8 @@ function drawThemeAtmosphere(
         ctx.restore();
       }
     }
-  } else if (themeId === 'buen-fin') {
-    // 🛍️ BUEN FIN: Explosive gold grid lines & glowing bursts
+  } else if (themeId === 'buen-fin' || themeId === 'preventa-buen-fin') {
+    // 🛍️ BUEN FIN / PREVENTA: Explosive gold grid lines & glowing bursts
     ctx.strokeStyle = 'rgba(234, 179, 8, 0.12)';
     ctx.lineWidth = 1.5;
     for (let x = 60; x < width; x += 100) {
@@ -394,7 +457,19 @@ export function renderFacebookAdToCanvas(
   // =========================================================================
   const bgGrad = ctx.createLinearGradient(0, 0, width, height);
 
-  if (themeId === 'fiestas-patrias') {
+  if (themeId === 'halloween') {
+    // 🎃 Halloween / Octubre: Mystic Midnight Violet & Spooky Pumpkin Orange
+    bgGrad.addColorStop(0, '#0d021a');
+    bgGrad.addColorStop(0.35, '#1e0736');
+    bgGrad.addColorStop(0.70, '#2b0f14');
+    bgGrad.addColorStop(1, '#08010f');
+  } else if (themeId === 'dia-de-muertos') {
+    // 💀 Día de Muertos / Noviembre: Royal Deep Plum & Marigold Orange
+    bgGrad.addColorStop(0, '#10021c');
+    bgGrad.addColorStop(0.35, '#230728');
+    bgGrad.addColorStop(0.70, '#2d1405');
+    bgGrad.addColorStop(1, '#080112');
+  } else if (themeId === 'fiestas-patrias') {
     // 🇲🇽 Fiestas Patrias: Rich Mexican Navy with deep green & red aura
     bgGrad.addColorStop(0, '#03140e');
     bgGrad.addColorStop(0.35, '#071d2b');
@@ -424,7 +499,25 @@ export function renderFacebookAdToCanvas(
   ctx.fillRect(0, 0, width, height);
 
   // Vibrant ambient glowing light orbs for depth & energy
-  if (themeId === 'fiestas-patrias') {
+  if (themeId === 'halloween') {
+    const orangeOrb = ctx.createRadialGradient(150, 160, 20, 150, 160, 520);
+    orangeOrb.addColorStop(0, 'rgba(249, 115, 22, 0.42)');
+    orangeOrb.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = orangeOrb;
+    ctx.fillRect(0, 0, width, height);
+
+    const purpleOrb = ctx.createRadialGradient(width - 150, height - 200, 30, width - 150, height - 200, 520);
+    purpleOrb.addColorStop(0, 'rgba(168, 85, 247, 0.35)');
+    purpleOrb.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = purpleOrb;
+    ctx.fillRect(0, 0, width, height);
+  } else if (themeId === 'dia-de-muertos') {
+    const marigoldOrb = ctx.createRadialGradient(width * 0.8, 160, 20, width * 0.8, 160, 500);
+    marigoldOrb.addColorStop(0, 'rgba(245, 158, 11, 0.42)');
+    marigoldOrb.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = marigoldOrb;
+    ctx.fillRect(0, 0, width, height);
+  } else if (themeId === 'fiestas-patrias') {
     const greenOrb = ctx.createRadialGradient(150, 150, 20, 150, 150, 520);
     greenOrb.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
     greenOrb.addColorStop(1, 'rgba(0, 0, 0, 0)');
@@ -455,11 +548,21 @@ export function renderFacebookAdToCanvas(
 
   // Outer Glowing Border
   const outerBorderColor =
-    themeId === 'fiestas-patrias'
-      ? 'rgba(16, 185, 129, 0.7)'
-      : themeId === 'buen-fin'
-        ? '#eab308'
-        : 'rgba(56, 189, 248, 0.7)';
+    themeId === 'halloween'
+      ? '#f97316'
+      : themeId === 'dia-de-muertos'
+        ? '#fbbf24'
+        : themeId === 'otono'
+          ? '#f59e0b'
+          : themeId === 'cyber-octubre'
+            ? '#00e5ff'
+            : themeId === 'preventa-buen-fin'
+              ? '#eab308'
+              : themeId === 'fiestas-patrias'
+                ? 'rgba(16, 185, 129, 0.7)'
+                : themeId === 'buen-fin'
+                  ? '#eab308'
+                  : 'rgba(56, 189, 248, 0.7)';
 
   ctx.strokeStyle = outerBorderColor;
   ctx.lineWidth = 4;
@@ -481,7 +584,22 @@ export function renderFacebookAdToCanvas(
   drawRoundedRect(ctx, 40, headerY, width - 80, headerH, 22);
   ctx.fill();
 
-  ctx.strokeStyle = themeId === 'fiestas-patrias' ? '#10b981' : themeId === 'buen-fin' ? '#eab308' : '#38bdf8';
+  ctx.strokeStyle =
+    themeId === 'halloween'
+      ? '#f97316'
+      : themeId === 'dia-de-muertos'
+        ? '#fbbf24'
+        : themeId === 'otono'
+          ? '#f59e0b'
+          : themeId === 'cyber-octubre'
+            ? '#00e5ff'
+            : themeId === 'preventa-buen-fin'
+              ? '#eab308'
+              : themeId === 'fiestas-patrias'
+                ? '#10b981'
+                : themeId === 'buen-fin'
+                  ? '#eab308'
+                  : '#38bdf8';
   ctx.lineWidth = 2.2;
   ctx.stroke();
 
@@ -511,13 +629,18 @@ export function renderFacebookAdToCanvas(
   ctx.fillText('AT&T', 118, globeY + 10);
 
   // SUCURSAL BADGE (Prominent: "Sucursal Alsuper Robinson")
-  ctx.fillStyle = '#fde047';
+  ctx.fillStyle = themeId === 'halloween' ? '#fb923c' : themeId === 'otono' ? '#fde047' : '#fde047';
   ctx.font = '900 18px system-ui, -apple-system, sans-serif';
   ctx.fillText(`📍 ${data.sucursal.toUpperCase()}`, 198, globeY + 8);
 
   // Event Theme Ribbon on right side of header
   let eventText = (data.eventBadge || '🔥 LANZAMIENTO DESTACADO').toUpperCase();
-  if (themeId === 'fiestas-patrias') eventText = '🇲🇽 FIESTAS PATRIAS 🇲🇽';
+  if (themeId === 'halloween') eventText = '🎃 ESPECIAL HALLOWEEN 🎃';
+  else if (themeId === 'dia-de-muertos') eventText = '💀 DÍA DE MUERTOS 💀';
+  else if (themeId === 'otono') eventText = '🍂 ESPECIAL OTOÑO 🍂';
+  else if (themeId === 'cyber-octubre') eventText = '⚡ CYBER OCTUBRE ⚡';
+  else if (themeId === 'preventa-buen-fin') eventText = '🛍️ PREVENTA BUEN FIN 🛍️';
+  else if (themeId === 'fiestas-patrias') eventText = '🇲🇽 FIESTAS PATRIAS 🇲🇽';
   else if (themeId === 'buen-fin') eventText = '🛍️ GRAN VENTA BUEN FIN';
   else if (themeId === 'navidad') eventText = '🎄 ESPECIAL NAVIDEÑO';
 
@@ -528,7 +651,27 @@ export function renderFacebookAdToCanvas(
   const tagH = 46;
 
   const tagGrad = ctx.createLinearGradient(tagX, tagY, tagX + tagW, tagY);
-  if (themeId === 'fiestas-patrias') {
+  if (themeId === 'halloween') {
+    tagGrad.addColorStop(0, '#ea580c');
+    tagGrad.addColorStop(0.5, '#7e22ce');
+    tagGrad.addColorStop(1, '#f97316');
+  } else if (themeId === 'dia-de-muertos') {
+    tagGrad.addColorStop(0, '#f59e0b');
+    tagGrad.addColorStop(0.5, '#db2777');
+    tagGrad.addColorStop(1, '#ea580c');
+  } else if (themeId === 'otono') {
+    tagGrad.addColorStop(0, '#d97706');
+    tagGrad.addColorStop(0.5, '#b45309');
+    tagGrad.addColorStop(1, '#f59e0b');
+  } else if (themeId === 'cyber-octubre') {
+    tagGrad.addColorStop(0, '#0284c7');
+    tagGrad.addColorStop(0.5, '#9333ea');
+    tagGrad.addColorStop(1, '#06b6d4');
+  } else if (themeId === 'preventa-buen-fin') {
+    tagGrad.addColorStop(0, '#b45309');
+    tagGrad.addColorStop(0.5, '#eab308');
+    tagGrad.addColorStop(1, '#d97706');
+  } else if (themeId === 'fiestas-patrias') {
     tagGrad.addColorStop(0, '#10b981');
     tagGrad.addColorStop(0.5, '#ffffff');
     tagGrad.addColorStop(1, '#ef4444');

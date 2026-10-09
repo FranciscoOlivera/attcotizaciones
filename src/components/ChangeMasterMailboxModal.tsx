@@ -183,7 +183,7 @@ export const ChangeMasterMailboxModal: React.FC<ChangeMasterMailboxModalProps> =
               </button>
             </div>
             <p className="text-[11px] text-slate-500">
-              Solo tú puedes hacer este cambio con tu PIN autorizado: <strong>2429</strong>.
+              Solo el titular autorizado puede realizar este cambio con su PIN secreto personal.
             </p>
           </div>
 

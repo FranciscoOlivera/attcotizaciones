@@ -330,9 +330,16 @@ async function startServer() {
 
   // 5. AI Facebook Ad Copy Generator (Gemini 2.5/3.8 Flash with robust offline templates)
   app.post('/api/ai/facebook-copy', async (req, res) => {
+    const currentMonthNum = new Date().getMonth();
+    const MONTH_NAMES_ES = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    const defaultCurrentMonth = MONTH_NAMES_ES[currentMonthNum] || 'Octubre';
+
     const {
       theme = 'Especial del Mes',
-      monthName = 'Septiembre',
+      monthName = defaultCurrentMonth,
       eventName = '',
       devices = [],
       sucursal = 'AT&T Alsuper Robinson',
@@ -347,8 +354,14 @@ async function startServer() {
       : '• Varios modelos disponibles con enganche desde el 10% y mensualidades bajas';
 
     try {
-      const prompt = `Eres un redactor publicitario senior (Copywriter) experto en anuncios para redes sociales de distribuidores autorizados de AT&T México.
-Escribe un texto publicitario altamente vendedor, profesional, persuasivo y estructurado para promocionar los últimos modelos con vigencia activa.
+      const prompt = `Eres un redactor publicitario senior (Copywriter) experto en anuncios virales para redes sociales (Facebook, Instagram y WhatsApp) de distribuidores autorizados de AT&T México.
+Escribe un texto publicitario altamente vendedor, fresco, persuasivo y estructurado para promocionar los últimos modelos con vigencia activa.
+
+REGLA CRUCIAL DE TEMPORADA:
+- El mes en curso es ${monthName}.
+- Enfócate EXCLUSIVAMENTE en eventos y festividades actuales del mes en curso (${monthName}), por ejemplo HALLOWEEN (en Octubre), Día de Muertos o Buen Fin (en Noviembre), Navidad (en Diciembre), etc.
+- NUNCA menciones Fiestas Patrias, Septiembre ni eventos que ya pasaron.
+- Temática o Campaña seleccionada: ${eventName ? `${eventName} (${theme})` : theme}. Incorpora frases y ganchos ingeniosos acordes a la festividad de ${monthName} (por ejemplo si es Halloween: ofertas de miedo, precios de espanto, sin sustos en tu mensualidad, etc.).
 
 DATOS DE LA CAMPAÑA:
 - Sucursal Oficial: ${sucursal}
@@ -361,7 +374,7 @@ LISTA DE EQUIPOS EN PROMOCIÓN:
 ${devicesListText}
 
 ESTRUCTURA DEL MENSAJE:
-1. Gancho llamativo en mayúsculas que detenga el scroll.
+1. Gancho llamativo en mayúsculas que detenga el scroll relacionado con la temática (${theme}).
 2. Explica que pueden estrenar con ENGANCHE MÍNIMO (10%) o con ENGANCHE MÁXIMO (50%) para mensualidad ultra baja congelada.
 3. Lista clara y organizada de los modelos con sus pagos.
 4. Beneficios del Plan: Redes sociales ilimitadas y Roaming México/USA/Canadá.
@@ -390,8 +403,17 @@ Responde ÚNICAMENTE con el texto publicitario listo para publicar.`;
       plazo: 36,
     };
 
-    const fallbackCopy = `🔥 ¡ESTRENA HOY EN ${sucursal.toUpperCase()}! 🔥
-${eventName ? `✨ ${eventName.toUpperCase()} ✨\n` : ''}¿Buscabas cambiar de celular sin descapitalizarte? ¡Llegaste al lugar correcto! En este mes de ${monthName}, tenemos los últimos modelos con PRECIO DE PROMOCIÓN VIGENTE 📲⚡
+    const isHalloweenMonth = monthName.toLowerCase().includes('octub');
+    const headerHook = isHalloweenMonth
+      ? `🎃 ¡OFERTAS DE MIEDO EN ${sucursal.toUpperCase()}! 👻`
+      : `🔥 ¡ESTRENA HOY EN ${sucursal.toUpperCase()}! 🔥`;
+
+    const subHook = isHalloweenMonth
+      ? `¡Precios de espanto y sin sustos en tu mensualidad este mes de ${monthName}! 🕸️📲`
+      : `¡Aprovecha las promociones oficiales vigentes este mes de ${monthName}! 📲⚡`;
+
+    const fallbackCopy = `${headerHook}
+${eventName ? `✨ ${eventName.toUpperCase()} ✨\n` : ''}${subHook}
 
 💥 ¡TÚ ELIGES CÓMO PAGAR!:
 👉 Enganche MÍNIMO desde el 10% de su precio promo (¡Llévatelo con poco pago inicial!)
@@ -521,15 +543,27 @@ Devuelve únicamente un JSON en formato de arreglo de strings: ["frase 1", "fras
       console.warn('[Server] Headline hook fallback:', e);
     }
 
+    const isHalloween =
+      theme.toLowerCase().includes('halloween') ||
+      theme.toLowerCase().includes('miedo') ||
+      theme.toLowerCase().includes('octub');
+
     return res.json({
       success: true,
-      headlines: [
-        '¡Estrena hoy con solo 10% de enganche!',
-        'Gama Alta disponible con mensualidad congelada',
-        `Promoción Oficial en ${sucursal}`,
-        '¡Cambia tu celular sin descapitalizarte hoy!',
-      ],
-      source: 'preset-fallback'
+      headlines: isHalloween
+        ? [
+            '🎃 ¡Precios de espanto y sin sustos!',
+            '👻 Estrena hoy con solo 10% de enganche',
+            '🕸️ Ofertas de miedo con mensualidad congelada',
+            '🧙 ¡Dulce o truco! Llévatelo sin descapitalizarte',
+          ]
+        : [
+            '¡Estrena hoy con solo 10% de enganche!',
+            'Gama Alta disponible con mensualidad congelada',
+            `Promoción Oficial en ${sucursal}`,
+            '¡Cambia tu celular sin descapitalizarte hoy!',
+          ],
+      source: 'preset-fallback',
     });
   });
 

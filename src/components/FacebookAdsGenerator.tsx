@@ -62,16 +62,53 @@ const MONTH_NAMES = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
 
-const POPULAR_CAMPAIGN_THEMES = [
-  { id: 'mes-actual', label: 'Mes en Curso (Automático)', icon: '📅' },
-  { id: 'fiestas-patrias', label: 'Fiestas Patrias / Septiembre (Tricolor 🇲🇽)', icon: '🇲🇽' },
-  { id: 'buen-fin', label: 'Gran Venta Buen Fin / Black Friday (Neón & Oro 🛍️)', icon: '🛍️' },
-  { id: 'navidad', label: 'Especial Navideño & Fin de Año (Zafiro & Oro 🎄)', icon: '🎄' },
-  { id: 'lanzamientos', label: 'Lanzamientos 2026 / Gama Alta (Cyber Cyan 🚀)', icon: '🚀' },
-  { id: 'regreso-clases', label: 'Regreso a Clases 🎒', icon: '🎒' },
-  { id: 'aniversario', label: 'Aniversario Sucursal Alsuper Robinson 🏬', icon: '🏬' },
-  { id: 'custom', label: 'Personalizado...', icon: '✨' },
-];
+export const getMonthlyCampaignThemes = (monthIndex: number) => {
+  switch (monthIndex) {
+    case 9: // Octubre (Halloween, Día de Muertos, Otoño, etc.)
+      return [
+        { id: 'halloween', label: 'Especial Halloween (Ofertas de Miedo 🎃)', icon: '🎃' },
+        { id: 'dia-de-muertos', label: 'Día de Muertos (Promociones de Leyenda 💀)', icon: '💀' },
+        { id: 'otono', label: 'Especial Octubre / Otoño (Sin Sustos en tu Mensualidad 🍂)', icon: '🍂' },
+        { id: 'preventa-buen-fin', label: 'Preventa Anticipada Buen Fin (Precios Congelados 🛍️)', icon: '🛍️' },
+        { id: 'cyber-octubre', label: 'Cyber Octubre / Festival de Tecnología ⚡', icon: '⚡' },
+        { id: 'lanzamientos', label: 'Lanzamientos 2026 / Gama Alta (Cyber Cyan 🚀)', icon: '🚀' },
+        { id: 'aniversario', label: 'Aniversario Sucursal Alsuper Robinson 🏬', icon: '🏬' },
+        { id: 'custom', label: 'Personalizado...', icon: '✨' },
+      ];
+    case 10: // Noviembre (Buen Fin, Black Friday)
+      return [
+        { id: 'buen-fin', label: 'Gran Venta Buen Fin & Black Friday (Neón & Oro 🛍️)', icon: '🛍️' },
+        { id: 'dia-de-muertos', label: 'Día de Muertos (Tradición Mexicana 💀)', icon: '💀' },
+        { id: 'cyber-octubre', label: 'Cyber Monday / Mega Descuentos 💻', icon: '💻' },
+        { id: 'lanzamientos', label: 'Lanzamientos 2026 / Gama Alta 🚀', icon: '🚀' },
+        { id: 'aniversario', label: 'Aniversario Sucursal Alsuper Robinson 🏬', icon: '🏬' },
+        { id: 'custom', label: 'Personalizado...', icon: '✨' },
+      ];
+    case 11: // Diciembre (Navidad, Fin de Año)
+      return [
+        { id: 'navidad', label: 'Especial Navideño & Fin de Año (Zafiro & Oro 🎄)', icon: '🎄' },
+        { id: 'lanzamientos', label: 'Lanzamientos 2026 / Gama Alta 🚀', icon: '🚀' },
+        { id: 'aniversario', label: 'Aniversario Sucursal Alsuper Robinson 🏬', icon: '🏬' },
+        { id: 'custom', label: 'Personalizado...', icon: '✨' },
+      ];
+    case 8: // Septiembre (Fiestas Patrias)
+      return [
+        { id: 'fiestas-patrias', label: 'Fiestas Patrias / Septiembre (Tricolor 🇲🇽)', icon: '🇲🇽' },
+        { id: 'lanzamientos', label: 'Lanzamientos 2026 / Gama Alta 🚀', icon: '🚀' },
+        { id: 'aniversario', label: 'Aniversario Sucursal Alsuper Robinson 🏬', icon: '🏬' },
+        { id: 'custom', label: 'Personalizado...', icon: '✨' },
+      ];
+    default:
+      return [
+        { id: 'halloween', label: 'Especial Halloween (Ofertas de Miedo 🎃)', icon: '🎃' },
+        { id: 'dia-de-muertos', label: 'Día de Muertos (Promociones de Leyenda 💀)', icon: '💀' },
+        { id: 'otono', label: 'Especial Octubre / Otoño (Sin Sustos 🍂)', icon: '🍂' },
+        { id: 'lanzamientos', label: 'Lanzamientos 2026 / Gama Alta 🚀', icon: '🚀' },
+        { id: 'aniversario', label: 'Aniversario Sucursal Alsuper Robinson 🏬', icon: '🏬' },
+        { id: 'custom', label: 'Personalizado...', icon: '✨' },
+      ];
+  }
+};
 
 export const FacebookAdsGenerator: React.FC<FacebookAdsGeneratorProps> = ({
   records,
@@ -83,19 +120,30 @@ export const FacebookAdsGenerator: React.FC<FacebookAdsGeneratorProps> = ({
   const isDark = theme === 'dark';
 
   // Current Month detection
+  const currentMonthIndex = useMemo(() => new Date().getMonth(), []);
   const currentMonthName = useMemo(() => {
-    const monthIndex = new Date().getMonth();
-    return MONTH_NAMES[monthIndex] || 'Octubre';
-  }, []);
+    return MONTH_NAMES[currentMonthIndex] || 'Octubre';
+  }, [currentMonthIndex]);
 
-  // Campaign Settings
+  const popularCampaignThemes = useMemo(() => {
+    return getMonthlyCampaignThemes(currentMonthIndex);
+  }, [currentMonthIndex]);
+
+  // Campaign Settings - default to Halloween during October
   const [sucursal, setSucursal] = useState('AT&T Alsuper Robinson');
-  const [selectedThemePreset, setSelectedThemePreset] = useState('fiestas-patrias');
+  const [selectedThemePreset, setSelectedThemePreset] = useState<string>(() => {
+    return currentMonthIndex === 9 ? 'halloween' : (getMonthlyCampaignThemes(currentMonthIndex)[0]?.id || 'halloween');
+  });
   const [customThemeName, setCustomThemeName] = useState('');
   const [campaignTone, setCampaignTone] = useState<'urgente' | 'asesoria' | 'exclusividad'>('urgente');
   const [aiPostFormat, setAiPostFormat] = useState<'facebook_post' | 'whatsapp_broadcast' | 'reels_script'>('facebook_post');
   const [adStyle, setAdStyle] = useState<'modern-friendly' | 'cyber-blue' | 'retail-pop' | 'titanium-dark'>('modern-friendly');
   const [aspectRatio, setAspectRatio] = useState<'1:1' | '4:5'>('1:1');
+
+  // Batch Plan & Plazo controls for multi-image download customization (User Requested)
+  const [batchPlan, setBatchPlan] = useState<string>('ALL');
+  const [batchPlazo, setBatchPlazo] = useState<string>('ALL');
+  const [modelCustomConfig, setModelCustomConfig] = useState<Record<string, { plan?: string; plazo?: number }>>({});
 
   // Active Menu Section Tab: 'galeria' | 'diseno' | 'copys' | 'matriz'
   const [activeAdTab, setActiveAdTab] = useState<'galeria' | 'diseno' | 'copys' | 'matriz'>('galeria');
@@ -170,10 +218,11 @@ export const FacebookAdsGenerator: React.FC<FacebookAdsGeneratorProps> = ({
   const effectiveThemeId = useMemo(() => {
     if (selectedThemePreset === 'mes-actual') {
       const m = currentMonthName.toLowerCase();
-      if (m.includes('sept') || m.includes('sep')) return 'fiestas-patrias';
+      if (m.includes('octub')) return 'halloween';
       if (m.includes('nov')) return 'buen-fin';
       if (m.includes('dic')) return 'navidad';
-      return 'lanzamientos';
+      if (m.includes('sept') || m.includes('sep')) return 'fiestas-patrias';
+      return 'halloween';
     }
     return selectedThemePreset;
   }, [selectedThemePreset, currentMonthName]);
@@ -181,6 +230,21 @@ export const FacebookAdsGenerator: React.FC<FacebookAdsGeneratorProps> = ({
   const currentEventTitle = useMemo(() => {
     if (selectedThemePreset === 'custom') {
       return customThemeName.trim() || `Especial de ${currentMonthName}`;
+    }
+    if (selectedThemePreset === 'halloween') {
+      return '🎃 ¡Ofertas de Miedo! Especial de Halloween';
+    }
+    if (selectedThemePreset === 'dia-de-muertos') {
+      return '💀 Día de Muertos: Promociones de Leyenda';
+    }
+    if (selectedThemePreset === 'otono') {
+      return `🍂 Especial de ${currentMonthName}: Sin Sustos en tu Mensualidad`;
+    }
+    if (selectedThemePreset === 'cyber-octubre') {
+      return '⚡ Cyber Octubre: Festival de Tecnología 2026';
+    }
+    if (selectedThemePreset === 'preventa-buen-fin') {
+      return '🛍️ Preventa Anticipada: Precios Congelados';
     }
     if (selectedThemePreset === 'fiestas-patrias') {
       return '¡Viva México! Promociones Fiestas Patrias';
@@ -194,12 +258,12 @@ export const FacebookAdsGenerator: React.FC<FacebookAdsGeneratorProps> = ({
     if (selectedThemePreset === 'lanzamientos') {
       return 'Lanzamientos 2026 en Promoción';
     }
-    const preset = POPULAR_CAMPAIGN_THEMES.find((p) => p.id === selectedThemePreset);
+    const preset = popularCampaignThemes.find((p) => p.id === selectedThemePreset);
     if (selectedThemePreset === 'mes-actual') {
-      return `Gran Venta de ${currentMonthName}`;
+      return `🎃 Gran Venta de ${currentMonthName}`;
     }
     return preset?.label || `Especial de ${currentMonthName}`;
-  }, [selectedThemePreset, customThemeName, currentMonthName]);
+  }, [selectedThemePreset, customThemeName, currentMonthName, popularCampaignThemes]);
 
   // Unique model catalog for the Model Picker
   // Configured with the Plan and Plazo that requires the LEAST INITIAL PAYMENT under official AT&T Golden Rule
@@ -388,28 +452,158 @@ export const FacebookAdsGenerator: React.FC<FacebookAdsGeneratorProps> = ({
     }
   }, [latestModelsByBrand]);
 
-  // Selected items list for batch export and AI Copy
-  const selectedAdsList = useMemo(() => {
-    const map = new Map<string, DevicePriceRecord>();
+  // Available plans and plazos per model for custom bulk selection
+  const modelOptions = useMemo(() => {
+    const plansByModel = new Map<string, { planNombre: string; costoPlan: number }[]>();
+    const plazosByModel = new Map<string, number[]>();
+    const clean = (s: string) => s.toLowerCase().replace(/\(.*?\)/g, '').trim();
+
     for (const r of activePromoRecords) {
-      map.set(r.id, r);
+      const k = (r.model || '').toLowerCase().trim();
+      if (!k) continue;
+
+      if (!plansByModel.has(k)) plansByModel.set(k, []);
+      const pList = plansByModel.get(k)!;
+      const cleanPlan = clean(r.planNombre || '');
+      if (cleanPlan && !pList.some((p) => clean(p.planNombre) === cleanPlan)) {
+        pList.push({ planNombre: r.planNombre, costoPlan: r.costoPlan });
+      }
+
+      if (!plazosByModel.has(k)) plazosByModel.set(k, []);
+      const zList = plazosByModel.get(k)!;
+      const plazoNum = Number(r.plazo || 36);
+      if (plazoNum > 0 && !zList.includes(plazoNum)) {
+        zList.push(plazoNum);
+      }
     }
 
-    const matchedRecords: DevicePriceRecord[] = [];
+    for (const [, list] of plazosByModel) {
+      list.sort((a, b) => b - a);
+    }
+
+    return { plansByModel, plazosByModel };
+  }, [activePromoRecords]);
+
+  // Resolve custom/batch plan & plazo record for a model
+  const getConfiguredRecordForModel = (modelName: string): DevicePriceRecord | undefined => {
+    const cleanM = (modelName || '').toLowerCase().trim();
+    const recordsForModel = activePromoRecords.filter(
+      (r) => (r.model || '').toLowerCase().trim() === cleanM
+    );
+    if (recordsForModel.length === 0) return undefined;
+
+    const custom = modelCustomConfig[cleanM];
+    const targetPlan = custom?.plan !== undefined ? custom.plan : (batchPlan !== 'ALL' ? batchPlan : null);
+    const targetPlazo = custom?.plazo !== undefined ? custom.plazo : (batchPlazo !== 'ALL' ? Number(batchPlazo) : null);
+
+    const clean = (s: string) => s.toLowerCase().replace(/\(.*?\)/g, '').trim();
+
+    // 1. Both targetPlan and targetPlazo specified
+    if (targetPlan && targetPlazo) {
+      const exact = recordsForModel.find(
+        (r) => clean(r.planNombre) === clean(targetPlan) && Number(r.plazo) === targetPlazo
+      );
+      if (exact) return exact;
+    }
+
+    // 2. targetPlan specified
+    if (targetPlan) {
+      const planMatches = recordsForModel.filter((r) => clean(r.planNombre) === clean(targetPlan));
+      if (planMatches.length > 0) {
+        if (targetPlazo) {
+          planMatches.sort((a, b) => Math.abs(a.plazo - targetPlazo) - Math.abs(b.plazo - targetPlazo));
+        } else {
+          planMatches.sort((a, b) => a.precioPromocion - b.precioPromocion);
+        }
+        return planMatches[0];
+      }
+    }
+
+    // 3. targetPlazo specified
+    if (targetPlazo) {
+      const plazoMatches = recordsForModel.filter((r) => Number(r.plazo) === targetPlazo);
+      if (plazoMatches.length > 0) {
+        plazoMatches.sort((a, b) => a.precioPromocion - b.precioPromocion);
+        return plazoMatches[0];
+      }
+    }
+
+    // 4. Default: least initial payment record from unique catalog
+    const base = uniqueModelsCatalog.find((m) => (m.model || '').toLowerCase().trim() === cleanM);
+    return base || recordsForModel[0];
+  };
+
+  const handleModelPlanChange = (modelName: string, newPlan: string) => {
+    const cleanM = (modelName || '').toLowerCase().trim();
+    setModelCustomConfig((prev) => ({
+      ...prev,
+      [cleanM]: {
+        ...(prev[cleanM] || {}),
+        plan: newPlan === 'AUTO' ? undefined : newPlan,
+      },
+    }));
+  };
+
+  const handleModelPlazoChange = (modelName: string, newPlazo: number | string) => {
+    const cleanM = (modelName || '').toLowerCase().trim();
+    setModelCustomConfig((prev) => ({
+      ...prev,
+      [cleanM]: {
+        ...(prev[cleanM] || {}),
+        plazo: newPlazo === 'AUTO' ? undefined : Number(newPlazo),
+      },
+    }));
+  };
+
+  const handleResetModelConfigs = () => {
+    setModelCustomConfig({});
+    setBatchPlan('ALL');
+    setBatchPlazo('ALL');
+    showToast('Plan y Plazo restablecidos a valores automáticos.');
+  };
+
+  // Selected items list for batch export and AI Copy - personalized with chosen Plan and Plazo
+  const selectedAdsList = useMemo(() => {
+    const list: FacebookAdData[] = [];
+    const processedModels = new Set<string>();
+
+    const idToModel = new Map<string, string>();
+    for (const r of activePromoRecords) {
+      idToModel.set(r.id, r.model);
+    }
+
     for (const id of selectedIds) {
-      const rec = map.get(id);
-      if (rec) matchedRecords.push(rec);
-    }
+      const modelName = idToModel.get(id);
+      if (!modelName) continue;
+      const cleanKey = modelName.toLowerCase().trim();
+      if (processedModels.has(cleanKey)) continue;
+      processedModels.add(cleanKey);
 
-    return matchedRecords.map((r) => {
-      const modelKey = (r.model || '').toLowerCase().trim();
-      const modelContado = modelContadoMap.get(modelKey) || Number(r.precioContado || 0);
-      const data = calculateAdFinancials(r, sucursal, currentEventTitle, effectiveThemeId, modelContado);
+      const rec = getConfiguredRecordForModel(modelName);
+      if (!rec) continue;
+
+      const modelKey = (rec.model || '').toLowerCase().trim();
+      const modelContado = modelContadoMap.get(modelKey) || Number(rec.precioContado || 0);
+      const data = calculateAdFinancials(rec, sucursal, currentEventTitle, effectiveThemeId, modelContado);
       data.themeStyle = adStyle;
       data.aspectRatio = aspectRatio;
-      return data;
-    });
-  }, [activePromoRecords, selectedIds, sucursal, currentEventTitle, effectiveThemeId, adStyle, aspectRatio, modelContadoMap]);
+      list.push(data);
+    }
+
+    return list;
+  }, [
+    activePromoRecords,
+    selectedIds,
+    modelCustomConfig,
+    batchPlan,
+    batchPlazo,
+    sucursal,
+    currentEventTitle,
+    effectiveThemeId,
+    adStyle,
+    aspectRatio,
+    modelContadoMap,
+  ]);
 
   // Fetch / Generate AI Copy from server API (Gemini 3.8 Flash)
   const handleGenerateAICopy = async () => {
@@ -706,6 +900,78 @@ export const FacebookAdsGenerator: React.FC<FacebookAdsGeneratorProps> = ({
                   </button>
                 ))}
               </div>
+
+              {/* ⚡ Custom Plan & Plazo Selector for Batch Image Downloads (User Requested) */}
+              <div
+                className={`p-3 rounded-2xl border flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 ${
+                  isDark ? 'bg-cyan-950/30 border-cyan-800/60' : 'bg-cyan-50/90 border-cyan-300'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 rounded-xl bg-cyan-600/20 text-cyan-400 border border-cyan-500/40 flex items-center justify-center shrink-0">
+                    <Sliders className="w-4 h-4 text-cyan-400" />
+                  </div>
+                  <div>
+                    <h4 className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      Configurar Plan y Plazo de Descarga
+                    </h4>
+                    <p className={`text-[11px] ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                      Elige el plan y plazo general para el paquete de imágenes o cámbialo en cada equipo.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2.5 flex-wrap gap-y-2">
+                  {/* Global Plan selector */}
+                  <div className="flex items-center space-x-1.5 text-xs">
+                    <span className="text-[11px] font-semibold text-slate-400">Plan:</span>
+                    <select
+                      value={batchPlan}
+                      onChange={(e) => setBatchPlan(e.target.value)}
+                      className={`text-xs font-bold rounded-xl px-2.5 py-1.5 border focus:outline-none focus:border-cyan-500 ${
+                        isDark ? 'bg-slate-900 border-slate-700 text-cyan-300' : 'bg-white border-slate-300 text-cyan-800'
+                      }`}
+                    >
+                      <option value="ALL">🎯 Todos / Mejor Oferta</option>
+                      {availablePlans.map((p) => (
+                        <option key={p} value={p}>
+                          Plan {p.toUpperCase()}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Global Plazo selector */}
+                  <div className="flex items-center space-x-1.5 text-xs">
+                    <span className="text-[11px] font-semibold text-slate-400">Plazo:</span>
+                    <select
+                      value={batchPlazo}
+                      onChange={(e) => setBatchPlazo(e.target.value)}
+                      className={`text-xs font-bold rounded-xl px-2.5 py-1.5 border focus:outline-none focus:border-cyan-500 ${
+                        isDark ? 'bg-slate-900 border-slate-700 text-cyan-300' : 'bg-white border-slate-300 text-cyan-800'
+                      }`}
+                    >
+                      <option value="ALL">⏱️ Todos / 36m (Mejor)</option>
+                      <option value="36">36 Meses (Recomendado)</option>
+                      <option value="30">30 Meses</option>
+                      <option value="24">24 Meses</option>
+                      <option value="18">18 Meses</option>
+                      <option value="12">12 Meses</option>
+                    </select>
+                  </div>
+
+                  {/* Reset button if custom modified */}
+                  {(Object.keys(modelCustomConfig).length > 0 || batchPlan !== 'ALL' || batchPlazo !== 'ALL') && (
+                    <button
+                      type="button"
+                      onClick={handleResetModelConfigs}
+                      className="text-[11px] text-cyan-500 hover:text-cyan-400 font-bold px-2 py-1 rounded-lg bg-cyan-950 border border-cyan-800 transition"
+                    >
+                      Restablecer
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Models Scrollable Grid */}
@@ -722,22 +988,29 @@ export const FacebookAdsGenerator: React.FC<FacebookAdsGeneratorProps> = ({
                   })
                   .map((item) => {
                     const isSelected = selectedIds.has(item.id);
-                    const hasTikTok = isTikTokIncludedInPlan(item.planNombre, item.costoPlan);
-                    const promo = Number(item.precioPromocion || 0);
+                    const cleanKey = (item.model || '').toLowerCase().trim();
+                    const currentRec = getConfiguredRecordForModel(item.model) || item;
+                    const hasTikTok = isTikTokIncludedInPlan(currentRec.planNombre, currentRec.costoPlan);
+                    const promo = Number(currentRec.precioPromocion || 0);
                     const modelKey = (item.model || '').toLowerCase().trim();
-                    const modelContado = modelContadoMap.get(modelKey) || Number(item.precioContado || 0);
+                    const modelContado = modelContadoMap.get(modelKey) || Number(currentRec.precioContado || 0);
                     const contado = modelContado > 0 ? modelContado : Math.round(promo * 1.25);
                     const isUnder30 = contado > 0 && promo < 0.30 * contado;
                     const initialPayment = isUnder30
-                      ? Math.round(3 * item.costoPlan * 100) / 100
+                      ? Math.round(3 * currentRec.costoPlan * 100) / 100
                       : Math.round(0.50 * promo * 100) / 100;
-                    const monthly = item.mensualidadTotalConMaxEnganche || item.mensualidad || 0;
+                    const monthly = currentRec.mensualidadTotalConMaxEnganche || currentRec.mensualidad || 0;
+
+                    const availablePlansForThisModel = modelOptions.plansByModel.get(cleanKey) || [];
+                    const availablePlazosForThisModel = modelOptions.plazosByModel.get(cleanKey) || [36, 24];
+
+                    const customConfig = modelCustomConfig[cleanKey];
 
                     return (
                       <div
                         key={item.id}
                         onClick={() => handleToggleSelect(item.id)}
-                        className={`p-3 rounded-2xl border-2 transition cursor-pointer select-none flex flex-col justify-between space-y-2 ${
+                        className={`p-3.5 rounded-2xl border-2 transition cursor-pointer select-none flex flex-col justify-between space-y-2.5 ${
                           isSelected
                             ? isDark
                               ? 'bg-cyan-950/40 border-cyan-500 shadow-lg'
@@ -782,6 +1055,55 @@ export const FacebookAdsGenerator: React.FC<FacebookAdsGeneratorProps> = ({
                           </div>
                         </div>
 
+                        {/* Interactive Plan & Plazo selectors for this model */}
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          className={`p-2 rounded-xl border text-[11px] grid grid-cols-2 gap-2 ${
+                            isDark ? 'bg-slate-900/90 border-slate-800' : 'bg-slate-100/80 border-slate-200'
+                          }`}
+                        >
+                          <div className="space-y-0.5">
+                            <label className="text-[10px] font-bold text-slate-400 block truncate">
+                              Plan:
+                            </label>
+                            <select
+                              value={customConfig?.plan || (batchPlan !== 'ALL' ? batchPlan : 'AUTO')}
+                              onChange={(e) => handleModelPlanChange(item.model, e.target.value)}
+                              className={`w-full text-[11px] font-semibold rounded-lg px-1.5 py-1 border focus:outline-none focus:border-cyan-500 ${
+                                isDark ? 'bg-slate-950 border-slate-700 text-cyan-300' : 'bg-white border-slate-300 text-cyan-800'
+                              }`}
+                            >
+                              <option value="AUTO">Mejor oferta ({currentRec.planNombre})</option>
+                              {availablePlansForThisModel.map((p) => (
+                                <option key={p.planNombre} value={p.planNombre}>
+                                  {p.planNombre} (${p.costoPlan})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="space-y-0.5">
+                            <label className="text-[10px] font-bold text-slate-400 block truncate">
+                              Plazo:
+                            </label>
+                            <select
+                              value={customConfig?.plazo || (batchPlazo !== 'ALL' ? batchPlazo : 'AUTO')}
+                              onChange={(e) => handleModelPlazoChange(item.model, e.target.value)}
+                              className={`w-full text-[11px] font-semibold rounded-lg px-1.5 py-1 border focus:outline-none focus:border-cyan-500 ${
+                                isDark ? 'bg-slate-950 border-slate-700 text-cyan-300' : 'bg-white border-slate-300 text-cyan-800'
+                              }`}
+                            >
+                              <option value="AUTO">{currentRec.plazo}m (Auto)</option>
+                              {availablePlazosForThisModel.map((z) => (
+                                <option key={z} value={z}>
+                                  {z} meses
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Pricing summary */}
                         <div className={`grid grid-cols-2 gap-1.5 text-[11px] pt-1 border-t ${isDark ? 'border-slate-800/80' : 'border-slate-200'}`}>
                           <div>
                             <span className="text-slate-400 dark:text-slate-500 block text-[10px]">Precio Promo:</span>
@@ -798,7 +1120,9 @@ export const FacebookAdsGenerator: React.FC<FacebookAdsGeneratorProps> = ({
                             </span>
                           </div>
                           <div className="col-span-2 flex items-center justify-between pt-1">
-                            <span className="text-slate-500 dark:text-slate-400 text-[10px]">Mensualidad Total:</span>
+                            <span className="text-slate-500 dark:text-slate-400 text-[10px]">
+                              Mensualidad Total ({currentRec.plazo}m):
+                            </span>
                             <span className="font-black text-emerald-600 dark:text-emerald-400 text-xs">
                               ${monthly.toLocaleString('es-MX', { minimumFractionDigits: 2 })}/m
                             </span>
@@ -1189,7 +1513,7 @@ export const FacebookAdsGenerator: React.FC<FacebookAdsGeneratorProps> = ({
                 isDark ? 'bg-slate-950 border-slate-800 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
               }`}
             >
-              {POPULAR_CAMPAIGN_THEMES.map((theme) => (
+              {popularCampaignThemes.map((theme) => (
                 <option key={theme.id} value={theme.id}>
                   {theme.icon} {theme.label}
                 </option>
