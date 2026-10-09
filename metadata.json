@@ -1,0 +1,6 @@
+{
+  "name": "AT&T Precios Sync - Promociones Premium",
+  "description": "Automatización para extraer listas de precios de equipos AT&T Premium desde Gmail, actualizar la base de datos central en Google Sheets y enviar resúmenes de cambios.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
