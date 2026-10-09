@@ -329,7 +329,25 @@ export const extractATTPriceList = (
         }
       }
 
-      // Detect Plazo (24, 30, 36)
+      // Check if plazo cell has bogus non-plazo text (e.g. summary, rentas, notas)
+      const upperPlazoText = cellPlazoText.toUpperCase();
+      const isBogusPlazo =
+        upperPlazoText.includes('MENSUAL') ||
+        upperPlazoText.includes('TOTAL') ||
+        upperPlazoText.includes('VIGENCIA') ||
+        upperPlazoText.includes('RENTA') ||
+        upperPlazoText.includes('ENGANCHE') ||
+        upperPlazoText.includes('PAGO') ||
+        upperPlazoText.includes('DIFERENCIA') ||
+        upperPlazoText.includes('PRECIO') ||
+        upperPlazoText.includes('CONTADO') ||
+        upperPlazoText.includes('NOTA');
+
+      if (isBogusPlazo) {
+        continue;
+      }
+
+      // Detect Plazo (24, 30, 36, 12, 18)
       let plazo = 0;
       if (cellPlazoText) {
         if (cellPlazoText.includes('36')) plazo = 36;
@@ -340,22 +358,29 @@ export const extractATTPriceList = (
       }
 
       // If not explicit in plazoRow, infer from sequential sub-columns (24, 30, 36)
-      if (!plazo && activePlanName) {
+      if (!plazo && activePlanName && !cellPlazoText) {
         const standardCycle = [24, 30, 36];
         plazo = standardCycle[plazoCounter % 3];
       }
 
       if (activePlanName && plazo > 0) {
-        planColumns.push({
-          colIndex: c,
-          planName: activePlanName,
-          planMonthlyCost: activePlanPrice,
-          plazo,
-        });
-        plazoCounter++;
-        if (plazoCounter >= 3) {
-          activePlanName = ''; // Each plan has exactly 3 plazos (24, 30, 36). Reset so extra columns are never mistaken for plan prices!
-          activePlanPrice = 0;
+        // Prevent duplicate plazo mapping for the same plan (e.g. trailing formulas or summary cells)
+        const alreadyHasPlazo = planColumns.some(
+          (pc) => pc.planName.toLowerCase() === activePlanName.toLowerCase() && pc.plazo === plazo
+        );
+
+        if (!alreadyHasPlazo) {
+          planColumns.push({
+            colIndex: c,
+            planName: activePlanName,
+            planMonthlyCost: activePlanPrice,
+            plazo,
+          });
+          plazoCounter++;
+          if (plazoCounter >= 3) {
+            activePlanName = ''; // Each plan has exactly 3 plazos (24, 30, 36). Reset so extra columns are never mistaken for plan prices!
+            activePlanPrice = 0;
+          }
         }
       }
     }

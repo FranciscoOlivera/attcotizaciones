@@ -657,7 +657,7 @@ export function renderFacebookAdToCanvas(
   ctx.stroke();
 
   // Pillar 1 Header Badge
-  const p1BadgeText = '🏷️ PRECIO DE PROMOCIÓN';
+  const p1BadgeText = '🔥 PRECIO DE PROMOCIÓN ACTUAL';
   ctx.font = '900 16px system-ui, -apple-system, sans-serif';
   const p1BadgeW = ctx.measureText(p1BadgeText).width + 32;
   ctx.fillStyle = 'rgba(16, 185, 129, 0.35)';
@@ -673,7 +673,7 @@ export function renderFacebookAdToCanvas(
     maximumFractionDigits: 2,
   })}`;
   ctx.fillStyle = '#ffffff';
-  ctx.font = '900 46px system-ui, -apple-system, sans-serif';
+  ctx.font = '900 50px system-ui, -apple-system, sans-serif';
   ctx.fillText(promoFormatted, p1X + pillarW / 2, pillarsY + 92);
 
   // Regular Price Strikethrough
@@ -755,7 +755,7 @@ export function renderFacebookAdToCanvas(
   })}`;
 
   ctx.fillStyle = isRentasAdelantadas ? '#38bdf8' : '#34d399';
-  ctx.font = '900 46px system-ui, -apple-system, sans-serif';
+  ctx.font = '900 50px system-ui, -apple-system, sans-serif';
   ctx.fillText(initialFormatted, p2X + pillarW / 2, pillarsY + 92);
 
   // Reassurance sub-tag
@@ -778,7 +778,7 @@ export function renderFacebookAdToCanvas(
   }
 
   // =========================================================================
-  // 5. HERO CENTERPIECE: MENSUALIDAD TOTAL (HUGE 96px & UNMISSABLE)
+  // 5. HERO CENTERPIECE: MENSUALIDAD TOTAL (HUGE 100px & UNMISSABLE)
   // =========================================================================
   const heroY = pillarsY + pillarH + 16;
   const heroH = isSquare ? 230 : 270;
@@ -813,14 +813,14 @@ export function renderFacebookAdToCanvas(
   ctx.textAlign = 'center';
   ctx.fillText(badgeText, width / 2, badgeY + 25);
 
-  // Giant Monthly Price: e.g. "$749.50" + "/ mes" (HUGE 96px)
+  // Giant Monthly Price: e.g. "$749.50" + "/ mes" (HUGE 100px)
   const formattedMonthly = `$${Number(data.mensualidadTotal).toLocaleString('es-MX', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
 
   ctx.fillStyle = '#10b981';
-  ctx.font = '900 96px system-ui, -apple-system, sans-serif';
+  ctx.font = '900 100px system-ui, -apple-system, sans-serif';
   const monthlyTextWidth = ctx.measureText(formattedMonthly).width;
   ctx.textAlign = 'left';
   const priceStartX = (width - monthlyTextWidth - 130) / 2;

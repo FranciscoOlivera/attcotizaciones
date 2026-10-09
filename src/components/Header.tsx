@@ -14,6 +14,7 @@ import {
   Moon,
   Menu,
   X,
+  KeyRound,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -26,6 +27,7 @@ interface HeaderProps {
   hasToken: boolean;
   masterEmail?: string;
   isMasterConnected?: boolean;
+  onOpenChangeMasterMailbox?: () => void;
   theme?: 'dark' | 'light';
   onToggleTheme?: () => void;
   onToggleMobileMenu?: () => void;
@@ -42,6 +44,7 @@ export const Header: React.FC<HeaderProps> = ({
   hasToken,
   masterEmail = 'UserTotix98@gmail.com',
   isMasterConnected = true,
+  onOpenChangeMasterMailbox,
   theme = 'dark',
   onToggleTheme,
   onToggleMobileMenu,
@@ -99,6 +102,17 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className={isDark ? 'text-emerald-300 font-medium' : 'text-emerald-700 font-semibold'}>
                   Buzón: {masterEmail}
                 </span>
+                {onOpenChangeMasterMailbox && (
+                  <button
+                    type="button"
+                    onClick={onOpenChangeMasterMailbox}
+                    className="flex items-center space-x-1 text-[10px] font-bold text-cyan-600 dark:text-cyan-400 hover:text-cyan-500 bg-cyan-500/10 hover:bg-cyan-500/20 px-1.5 py-0.5 rounded transition"
+                    title="Cambiar buzón maestro (Protegido por PIN de Administrador)"
+                  >
+                    <KeyRound className="w-2.5 h-2.5" />
+                    <span>PIN</span>
+                  </button>
+                )}
                 <span className="text-slate-400 hidden md:inline">•</span>
                 <span className={`${isDark ? 'text-slate-400' : 'text-slate-500'} hidden md:inline`}>
                   Cotizaciones y Publicidad Oficial

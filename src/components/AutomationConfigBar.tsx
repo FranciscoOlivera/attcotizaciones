@@ -11,6 +11,7 @@ import {
   Download,
   UploadCloud,
   ChevronDown,
+  KeyRound,
 } from 'lucide-react';
 import { downloadSampleATTExcel } from '../utils/sampleExcelGenerator';
 
@@ -30,6 +31,7 @@ interface AutomationConfigBarProps {
   hasToken: boolean;
   isOwner?: boolean;
   masterEmail?: string;
+  onOpenChangeMasterMailbox?: () => void;
   theme?: 'dark' | 'light';
 }
 
@@ -49,6 +51,7 @@ export const AutomationConfigBar: React.FC<AutomationConfigBarProps> = ({
   hasToken,
   isOwner = false,
   masterEmail = 'UserTotix98@gmail.com',
+  onOpenChangeMasterMailbox,
   theme = 'dark',
 }) => {
   const [showConfig, setShowConfig] = useState(false);
@@ -102,6 +105,17 @@ export const AutomationConfigBar: React.FC<AutomationConfigBarProps> = ({
               <span className="font-medium text-cyan-600 dark:text-cyan-300 truncate max-w-[200px]">
                 {masterEmail}
               </span>
+              {onOpenChangeMasterMailbox && (
+                <button
+                  type="button"
+                  onClick={onOpenChangeMasterMailbox}
+                  className="flex items-center space-x-1 ml-1 text-[11px] font-bold text-cyan-600 dark:text-cyan-400 hover:text-cyan-500 bg-cyan-500/10 hover:bg-cyan-500/20 px-2 py-0.5 rounded transition"
+                  title="Cambiar buzón maestro (Protegido por PIN de Administrador)"
+                >
+                  <KeyRound className="w-3 h-3" />
+                  <span>Cambiar (PIN)</span>
+                </button>
+              )}
             </div>
 
             {/* Auto Monitor Status */}

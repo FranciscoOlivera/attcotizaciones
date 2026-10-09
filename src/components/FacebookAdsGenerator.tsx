@@ -34,6 +34,7 @@ import {
   Filter,
   Tag,
   ArrowRight,
+  Table,
 } from 'lucide-react';
 import { DevicePriceRecord, ATTPlan } from '../types/pricing';
 import { deduplicateDeviceRecords, getLatestModelsPerBrand } from '../utils/recordDeduplicator';
@@ -95,6 +96,9 @@ export const FacebookAdsGenerator: React.FC<FacebookAdsGeneratorProps> = ({
   const [aiPostFormat, setAiPostFormat] = useState<'facebook_post' | 'whatsapp_broadcast' | 'reels_script'>('facebook_post');
   const [adStyle, setAdStyle] = useState<'modern-friendly' | 'cyber-blue' | 'retail-pop' | 'titanium-dark'>('modern-friendly');
   const [aspectRatio, setAspectRatio] = useState<'1:1' | '4:5'>('1:1');
+
+  // Active Menu Section Tab: 'galeria' | 'diseno' | 'copys' | 'matriz'
+  const [activeAdTab, setActiveAdTab] = useState<'galeria' | 'diseno' | 'copys' | 'matriz'>('galeria');
 
   // Display Mode: 'top-5-brand' | 'best-model' | 'all-variants'
   const [viewMode, setViewMode] = useState<'top-5-brand' | 'best-model' | 'all-variants'>('top-5-brand');
@@ -281,7 +285,10 @@ export const FacebookAdsGenerator: React.FC<FacebookAdsGeneratorProps> = ({
         // Look for exact record matching plan and plazo
         const matches = activePromoRecords.filter((r) => {
           const mMatch = r.model.toLowerCase().trim() === cleanModel;
-          const pMatch = !isPlanFiltered || clean(r.planNombre) === selectedPlan;
+          const pMatch =
+            !isPlanFiltered ||
+            clean(r.planNombre) === selectedPlan ||
+            r.planNombre.toLowerCase().includes(selectedPlan);
           const zMatch = !isPlazoFiltered || String(r.plazo) === selectedPlazo;
           return mMatch && pMatch && zMatch;
         });
@@ -290,20 +297,38 @@ export const FacebookAdsGenerator: React.FC<FacebookAdsGeneratorProps> = ({
           // Sort by lowest promotional price or lowest initial payment
           matches.sort((a, b) => a.precioPromocion - b.precioPromocion);
           matchedMap.set(cleanModel, matches[0]);
-        } else if (viewMode === 'all-variants') {
-          // In all-variants, we don't force fallback
-        } else {
-          // Fallback to target record if no exact combination
-          matchedMap.set(cleanModel, target);
         }
       }
 
       if (viewMode === 'all-variants') {
         return activePromoRecords.filter((r) => {
-          const pMatch = !isPlanFiltered || clean(r.planNombre) === selectedPlan;
+          const pMatch =
+            !isPlanFiltered ||
+            clean(r.planNombre) === selectedPlan ||
+            r.planNombre.toLowerCase().includes(selectedPlan);
           const zMatch = !isPlazoFiltered || String(r.plazo) === selectedPlazo;
           return pMatch && zMatch;
         });
+      }
+
+      // If targetModels had no exact match but there are records for this plan and plazo, show them directly
+      if (matchedMap.size === 0) {
+        const directMatches = activePromoRecords.filter((r) => {
+          const pMatch =
+            !isPlanFiltered ||
+            clean(r.planNombre) === selectedPlan ||
+            r.planNombre.toLowerCase().includes(selectedPlan);
+          const zMatch = !isPlazoFiltered || String(r.plazo) === selectedPlazo;
+          return pMatch && zMatch;
+        });
+        const grouped = new Map<string, DevicePriceRecord>();
+        for (const r of directMatches) {
+          const k = r.model.toLowerCase().trim();
+          if (!grouped.has(k) || r.precioPromocion < grouped.get(k)!.precioPromocion) {
+            grouped.set(k, r);
+          }
+        }
+        return Array.from(grouped.values());
       }
 
       return Array.from(matchedMap.values());
@@ -1613,13 +1638,54 @@ const FacebookAdCard: React.FC<FacebookAdCardProps> = ({
     return [24, 30, 36].filter((p) => set.has(p));
   }, [allRecordsForModel]);
 
+  // Available plans for this model
+  const availablePlansForModel = useMemo(() => {
+    const clean = (s: string) => s.toLowerCase().replace(/\(.*?\)/g, '').trim();
+    const set = new Set<string>();
+    const planNames: string[] = [];
+    allRecordsForModel.forEach((r) => {
+      const c = clean(r.planNombre);
+      if (!set.has(c)) {
+        set.add(c);
+        planNames.push(r.planNombre);
+      }
+    });
+    return planNames;
+  }, [allRecordsForModel]);
+
+  // Handle local plan change on this card
+  const handlePlanChange = (newPlan: string) => {
+    const clean = (s: string) => s.toLowerCase().replace(/\(.*?\)/g, '').trim();
+    const targetClean = clean(newPlan);
+    const match =
+      allRecordsForModel.find(
+        (r) => clean(r.planNombre) === targetClean && r.plazo === currentAdData.plazo
+      ) ||
+      allRecordsForModel.find((r) => clean(r.planNombre) === targetClean) ||
+      allRecordsForModel[0];
+
+    if (match) {
+      const updated = calculateAdFinancials(
+        match,
+        currentAdData.sucursal,
+        currentAdData.eventBadge,
+        currentAdData.campaignThemeId,
+        currentAdData.precioContado
+      );
+      updated.themeStyle = currentAdData.themeStyle;
+      updated.aspectRatio = currentAdData.aspectRatio;
+      setCurrentAdData(updated);
+    }
+  };
+
   // Handle local plazo change on this card
   const handlePlazoChange = (newPlazo: number) => {
-    const match = allRecordsForModel.find(
-      (r) =>
-        r.plazo === newPlazo &&
-        r.planNombre.toLowerCase().trim() === currentAdData.planName.toLowerCase().trim()
-    ) || allRecordsForModel.find((r) => r.plazo === newPlazo);
+    const clean = (s: string) => s.toLowerCase().replace(/\(.*?\)/g, '').trim();
+    const match =
+      allRecordsForModel.find(
+        (r) => r.plazo === newPlazo && clean(r.planNombre) === clean(currentAdData.planName)
+      ) ||
+      allRecordsForModel.find((r) => r.plazo === newPlazo);
 
     if (match) {
       const updated = calculateAdFinancials(
@@ -1739,10 +1805,33 @@ const FacebookAdCard: React.FC<FacebookAdCardProps> = ({
       {/* Card Info & Quick Financial Numbers HIGHLIGHTED */}
       <div className={`p-4 space-y-3 ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
         {/* Plan and Plazo Selector on Card */}
-        <div className="flex items-center justify-between gap-2 text-xs">
-          <span className={`font-semibold truncate ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-            Plan: <strong className="text-cyan-600 dark:text-cyan-400">{currentAdData.planName}</strong> (${currentAdData.costoPlan}/m)
-          </span>
+        <div className="flex items-center justify-between gap-2 text-xs flex-wrap">
+          <div className="flex items-center space-x-1.5 min-w-0">
+            <span className={`text-[11px] font-semibold shrink-0 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Plan:
+            </span>
+            {availablePlansForModel.length > 1 ? (
+              <select
+                value={currentAdData.planName}
+                onChange={(e) => handlePlanChange(e.target.value)}
+                className={`text-[11px] font-bold rounded-lg px-2 py-1 border transition focus:outline-none max-w-[140px] truncate ${
+                  isDark
+                    ? 'bg-slate-950 border-slate-700 text-cyan-400'
+                    : 'bg-slate-50 border-slate-300 text-cyan-700'
+                }`}
+              >
+                {availablePlansForModel.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <strong className="text-cyan-600 dark:text-cyan-400 font-bold truncate">
+                {currentAdData.planName} (${currentAdData.costoPlan}/m)
+              </strong>
+            )}
+          </div>
 
           {availablePlazos.length > 1 && (
             <div className="flex items-center space-x-1 shrink-0">
@@ -1753,7 +1842,7 @@ const FacebookAdCard: React.FC<FacebookAdCardProps> = ({
                   onClick={() => handlePlazoChange(pz)}
                   className={`px-2 py-0.5 rounded text-[10px] font-bold transition border ${
                     currentAdData.plazo === pz
-                      ? 'bg-cyan-600 text-white border-cyan-600'
+                      ? 'bg-cyan-600 text-white border-cyan-600 shadow-sm'
                       : isDark
                         ? 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
                         : 'bg-slate-100 text-slate-600 border-slate-300 hover:text-slate-900'

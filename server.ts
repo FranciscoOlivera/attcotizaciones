@@ -115,12 +115,12 @@ try {
     serverState = {
       ...serverState,
       ...parsed,
-      masterEmail: 'UserTotix98@gmail.com', // Always tied to the owner
+      masterEmail: parsed.masterEmail || serverState.masterEmail || 'UserTotix98@gmail.com',
     };
     if (Array.isArray(serverState.records) && serverState.records.length > 0) {
       serverState.records = deduplicateRecords(serverState.records);
     }
-    console.log(`[Server] Loaded ${serverState.records.length} records and ${serverState.plans.length} plans from disk`);
+    console.log(`[Server] Loaded ${serverState.records.length} records and ${serverState.plans.length} plans from disk. Buzón Maestro: ${serverState.masterEmail}`);
   }
 } catch (e) {
   console.warn('[Server] Could not read server-data.json:', e);
@@ -150,7 +150,7 @@ async function startServer() {
   app.get('/api/sync/state', (_req, res) => {
     res.setHeader('Cache-Control', 'no-cache');
     return res.json({
-      masterEmail: 'UserTotix98@gmail.com',
+      masterEmail: serverState.masterEmail,
       isMasterConnected: !!masterAccessToken || serverState.records.length > 0,
       lastSyncAt: serverState.lastSyncAt,
       recordsCount: serverState.records.length,
@@ -166,7 +166,34 @@ async function startServer() {
   // MASTER / ADMIN ENDPOINTS: Strictly guarded
   // ==========================================
 
-  // 2. Register / renew master token from owner (UserTotix98@gmail.com)
+  // Change master mailbox - PROTECTED BY EXCLUSIVE USER PIN
+  app.post('/api/master/change-mailbox', (req, res) => {
+    const { pin, newEmail } = req.body || {};
+    const validPin = process.env.ADMIN_PIN || '2429';
+    if (String(pin || '').trim() !== validPin) {
+      return res.status(403).json({
+        error: 'PIN de seguridad incorrecto. Solo el titular autorizado puede modificar el buzón maestro.',
+      });
+    }
+
+    const cleanEmail = String(newEmail || '').trim();
+    if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
+      return res.status(400).json({ error: 'Ingresa un correo electrónico de Gmail válido.' });
+    }
+
+    const previousMail = serverState.masterEmail;
+    serverState.masterEmail = cleanEmail;
+    saveStateToDisk();
+
+    console.log(`[Server] Buzón maestro actualizado por administrador de ${previousMail} a ${serverState.masterEmail}`);
+    return res.json({
+      success: true,
+      masterEmail: serverState.masterEmail,
+      message: `Buzón maestro actualizado con éxito a: ${serverState.masterEmail}`,
+    });
+  });
+
+  // 2. Register / renew master token from owner
   app.post('/api/master/register-token', (req, res) => {
     const { token, email } = req.body;
     if (!token || !email) {
@@ -174,7 +201,7 @@ async function startServer() {
     }
 
     const cleanEmail = String(email).trim().toLowerCase();
-    if (cleanEmail !== MASTER_EMAIL) {
+    if (cleanEmail !== serverState.masterEmail.toLowerCase()) {
       return res.status(403).json({
         error: `Acceso denegado: Esta aplicación está configurada exclusivamente para el buzón de ${serverState.masterEmail}. Tu cuenta (${email}) no tiene permisos de administrador.`,
       });

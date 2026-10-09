@@ -57,6 +57,7 @@ import {
   X,
 } from 'lucide-react';
 import { FacebookAdsGenerator } from './components/FacebookAdsGenerator';
+import { ChangeMasterMailboxModal } from './components/ChangeMasterMailboxModal';
 
 const safeSetItem = (key: string, val: string) => {
   try {
@@ -155,6 +156,16 @@ export default function App() {
     }
   });
 
+  // Master Email State & Change Modal (Protected by PIN 2429)
+  const [masterEmail, setMasterEmail] = useState<string>(() => {
+    try {
+      return localStorage.getItem('att_master_email') || 'UserTotix98@gmail.com';
+    } catch {
+      return 'UserTotix98@gmail.com';
+    }
+  });
+  const [isChangeMailboxOpen, setIsChangeMailboxOpen] = useState(false);
+
   // Gmail Inbox State
   const [emails, setEmails] = useState<DetectedEmailMessage[]>([]);
   const [isScanning, setIsScanning] = useState(false);
@@ -204,6 +215,9 @@ export default function App() {
         const res = await fetch('/api/sync/state');
         if (res.ok && isMounted) {
           const data = await res.json();
+          if (data.masterEmail) {
+            setMasterEmail(data.masterEmail);
+          }
           if (Array.isArray(data.records) && data.records.length > 0) {
             setRecords(deduplicateDeviceRecords(data.records));
           }
@@ -761,7 +775,6 @@ export default function App() {
     }
   };
 
-  const masterEmail = 'UserTotix98@gmail.com';
   const isOwner = user?.email?.toLowerCase() === masterEmail.toLowerCase();
   const isTableLinked = records.length > 0 && plans.length > 0;
 
@@ -782,6 +795,7 @@ export default function App() {
         hasToken={!!accessToken}
         masterEmail={masterEmail}
         isMasterConnected={isTableLinked}
+        onOpenChangeMasterMailbox={() => setIsChangeMailboxOpen(true)}
         theme={theme}
         onToggleTheme={toggleTheme}
         onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -805,6 +819,7 @@ export default function App() {
         hasToken={!!accessToken}
         isOwner={isOwner}
         masterEmail={masterEmail}
+        onOpenChangeMasterMailbox={() => setIsChangeMailboxOpen(true)}
         theme={theme}
       />
 
@@ -913,6 +928,31 @@ export default function App() {
                 >
                   <span>{theme === 'dark' ? '☀️ Claro' : '🌙 Oscuro'}</span>
                 </button>
+              </div>
+
+              {/* Master Email Status & PIN Option inside Drawer */}
+              <div
+                className={`p-3 rounded-2xl border space-y-2 ${
+                  theme === 'dark' ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="text-xs truncate mr-2">
+                    <span className="text-[11px] font-bold block text-slate-400">Buzón Maestro Oficial:</span>
+                    <strong className="text-cyan-400 text-xs truncate block">{masterEmail}</strong>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setIsChangeMailboxOpen(true);
+                    }}
+                    className="px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white transition shrink-0"
+                    title="Cambiar buzón maestro (Protegido por PIN)"
+                  >
+                    Cambiar (PIN)
+                  </button>
+                </div>
               </div>
 
               {/* Group 1: Cotizadores y Ventas */}
@@ -1514,6 +1554,19 @@ export default function App() {
           </span>
         </div>
       </footer>
+
+      {/* Change Master Mailbox Modal (Protected by PIN 2429) */}
+      <ChangeMasterMailboxModal
+        isOpen={isChangeMailboxOpen}
+        onClose={() => setIsChangeMailboxOpen(false)}
+        currentMasterEmail={masterEmail}
+        onMailboxChanged={(newEmail) => {
+          setMasterEmail(newEmail);
+          safeSetItem('att_master_email', newEmail);
+          showToast(`¡Buzón maestro actualizado con éxito a: ${newEmail}!`, 'success');
+        }}
+        isDark={theme === 'dark'}
+      />
     </div>
   );
 }
